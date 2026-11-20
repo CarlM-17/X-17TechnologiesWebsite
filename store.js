@@ -331,7 +331,7 @@ function homePage(products, categories, query, activeCat) {
   const body = storeHeader(query) +
     `<section class="hero-strip"><div class="wrap">
       <div><h1>WiFi Vending Machines \u2014 Raspberry Pi Series</h1>
-      <p>Direct C.O.D. prices via LBC. Also on Shopee, Lazada &amp; Enstack.</p></div>
+      <p>Direct C.O.D. prices via LBC. Also on Shopee &amp; Lazada.</p></div>
       <span class="badge-cod">\uD83D\uDCB0 Cash on Delivery</span>
     </div></section>
     <div class="wrap">
