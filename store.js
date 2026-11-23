@@ -304,7 +304,7 @@ function layout({ title, body, head = '', bodyClass = '' }) {
 
 function storeHeader(query) {
   return `<header class="topbar"><div class="wrap">
-    <a class="logo" href="/shop">X-17<b>Technologies</b>
+    <a class="logo" href="/shop">X-17<b>Technologies</b></a>
     <form class="search" action="/shop" method="get">
       <input type="text" name="q" placeholder="Search products..." value="${esc(query || '')}">
       <button type="submit">Search</button>
