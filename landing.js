@@ -487,7 +487,7 @@ function finalCta(){
 }
 function footer(){
   const fl = a => `<a href="${a[0]}"${a[0].startsWith('http') ? ' target="_blank" rel="noopener"' : ''}>${a[1]}</a>`;
-  const modern = [['#flagship','Router-Based Series'],[L.SHOP,'Shop All Modern'],['#flagship','Comfast EW-72']];
+  const modern = [['#flagship','Router-Based Series'],[L.SHOP,'Shop All Modern Machines']];
   const trad = [['#traditional','Raspberry Pi Series'],[L.SHOP,'Shop All Traditional'],['#estimator','Revenue Estimator']];
   const support = [['#faq','FAQ'],[L.VIDEOFB,'Setup Tutorials'],[L.LAZADA,'Lazada Store'],[L.SHOPEE,'Shopee Store']];
   return `<footer class="footer"><div class="container">
