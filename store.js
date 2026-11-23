@@ -256,7 +256,7 @@ h1,h2,h3{line-height:1.2;font-weight:700;letter-spacing:-.01em;margin:0 0 .4em}
 .pd .pricebox{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0}
 .pd .pricebox .now{color:var(--navy);font-weight:800;font-size:2.1rem}
 .pd .pricebox .was{color:var(--mut);text-decoration:line-through;margin-left:10px}
-.pd .pricebox .save{display:inline-block;margin-left:10px;background:var(--amber);color:#3a2a00;font-weight:700;font-size:.8rem;padding:3px 10px;border-radius:7px;vertical-align:middle}
+.pd .pricebox .save{color:var(--red);font-weight:800;margin-left:4px}
 .feat{list-style:none;padding:0;margin:16px 0;display:grid;gap:9px}
 .feat li{padding-left:28px;position:relative;color:var(--text)}
 .feat li:before{content:'✔';position:absolute;left:0;color:var(--teal);font-weight:700}
@@ -288,7 +288,7 @@ h1,h2,h3{line-height:1.2;font-weight:700;letter-spacing:-.01em;margin:0 0 .4em}
 .note{font-size:.8rem;color:var(--mut);margin-top:8px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 @media(max-width:820px){.pd{grid-template-columns:1fr;gap:22px}.hero-strip h1{font-size:1.3rem}.navlinks .hideM{display:none}.topbar .wrap{gap:12px}}
-@media(max-width:640px){.topbar .wrap{flex-wrap:wrap;height:auto;padding:10px 20px;gap:10px}.logo{order:1}.navlinks{order:2;margin-left:auto;gap:16px}.search{order:3;flex-basis:100%;max-width:none}.search button{padding:0 16px}.grid{gap:16px}.hero-strip .wrap{padding:30px 20px}}
+@media(max-width:640px){.topbar .wrap{flex-wrap:wrap;height:auto;padding:10px 20px;gap:10px}.logo{order:1}.navlinks{order:2;margin-left:auto;gap:16px}.search{order:3;flex-basis:100%;max-width:none}.search button{padding:0 16px}.grid{gap:16px}.hero-strip .wrap{padding:30px 20px}}.group-title{font-size:1.25rem;margin:36px 0 16px;padding-bottom:10px;border-bottom:2px solid var(--line);color:var(--navy)}.group-title span{color:var(--mut);font-weight:500;font-size:.9rem}.card .save{color:var(--red);font-weight:800;font-size:.9rem;margin-top:2px}.btn{justify-content:center}.pb-main{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}.pb-tag{font-size:.78rem;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.4px}.pb-compare{margin-top:10px;font-size:.92rem;color:var(--mut)}.pb-compare s{color:var(--mut)}.pb-compare .save{color:var(--red);font-weight:800}.orderbox{border:1px solid var(--line);border-radius:14px;padding:18px;background:#fff;box-shadow:var(--shadow);margin:18px 0}.ob-head{font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.6px;color:var(--navy);margin-bottom:12px}.btn.big{width:100%;padding:16px 22px;font-size:1.06rem}.btn.full{width:100%;margin-top:10px}.ob-or{display:flex;align-items:center;gap:12px;color:var(--mut);font-size:.8rem;margin:16px 0 12px}.ob-or:before,.ob-or:after{content:'';flex:1;height:1px;background:var(--line)}.ob-stores{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ob-stores .btn{width:100%}@media(max-width:560px){.grid{grid-template-columns:repeat(2,1fr);gap:12px}.card .name{font-size:.85rem;min-height:2.4em}.card .body{padding:11px 12px 13px;gap:5px}.price .now{font-size:1.04rem}.price .was{font-size:.78rem}.card .save{font-size:.8rem}.ob-stores{grid-template-columns:1fr}}
 `;
 
 function layout({ title, body, head = '', bodyClass = '' }) {
@@ -304,7 +304,7 @@ function layout({ title, body, head = '', bodyClass = '' }) {
 
 function storeHeader(query) {
   return `<header class="topbar"><div class="wrap">
-    <a class="logo" href="/shop">X-<b>17</b> Technologies</a>
+    <a class="logo" href="/shop">X-17<b>Technologies</b>
     <form class="search" action="/shop" method="get">
       <input type="text" name="q" placeholder="Search products..." value="${esc(query || '')}">
       <button type="submit">Search</button>
@@ -318,7 +318,7 @@ function storeHeader(query) {
 }
 function storeFooter() {
   return `<footer class="footer"><div class="wrap">
-    X-17 Technologies &middot; DTI BN No. 5975962 &middot; \u260E 0922 460 5116 &middot; COD via LBC nationwide<br>
+    X-17 Technologies &middot; DTI BN No. 5975962 &middot; \u260E 0922 460 5116 &middot; COD via LBC &amp; J&amp;T nationwide<br>
     &copy; 2026 X-17 Technologies. All rights reserved.
   </div></footer>`;
 }
@@ -344,6 +344,9 @@ function discountPct(p) {
   if (was > 0 && now > 0 && was > now) return Math.round((1 - now / was) * 100);
   return 0;
 }
+function savings(p){var w=Number(p.price_was),n=Number(p.price_now);return (w>0&&n>0&&w>n)?(w-n):0;}
+function groupRank(p){var s=(((p.category&&p.category.name)||'')+' '+(p.name||'')+' '+(p.router_model||'')).toLowerCase();if(s.indexOf('router base')>=0||s.indexOf('router-base')>=0||s.indexOf('routerbase')>=0||s.indexOf('router based')>=0)return {k:'Router Base',r:0};return {k:'Raspberry Pi Series',r:1};}
+function renderGroups(list){var groups={};list.forEach(function(p){var g=groupRank(p);if(!groups[g.k])groups[g.k]={rank:g.r,items:[]};groups[g.k].items.push(p);});var keys=Object.keys(groups).sort(function(a,b){return groups[a].rank-groups[b].rank;});return keys.map(function(k){return '<h2 class="group-title">'+esc(k)+' <span>('+groups[k].items.length+')</span></h2><div class="grid">'+groups[k].items.map(productCard).join('')+'</div>';}).join('');}
 function productCard(p) {
   const pct = discountPct(p);
   const oos = (p.stock != null && Number(p.stock) <= 0);
@@ -356,7 +359,7 @@ function productCard(p) {
     <div class="body">
       <div class="name">${esc(p.name)}</div>
       <div class="price"><span class="now">${money(p.price_now)}</span>${p.price_was ? `<span class="was">${money(p.price_was)}</span>` : ''}</div>
-      <div class="meta">${p.category ? esc(p.category.name) : 'WiFi Vending'}</div>
+      ${savings(p) ? `<div class="save">Save ${money(savings(p))}</div>` : ''}<div class="meta">${p.price_was ? 'Shopee/Lazada ' + money(p.price_was) : (p.category ? esc(p.category.name) : 'WiFi Vending')}</div>
     </div>
   </a>`;
 }
@@ -370,14 +373,14 @@ function homePage(products, categories, query, activeCat) {
     .concat(categories.map(c => '<a class="chip' + (activeCat === c.slug ? ' active' : '') + '" href="/shop?cat=' + encodeURIComponent(c.slug) + '">' + esc(c.name) + '</a>')).join('');
   const body = storeHeader(query) +
     `<section class="hero-strip"><div class="wrap">
-      <div><h1>WiFi Vending Machines \u2014 Raspberry Pi Series</h1>
-      <p>Direct C.O.D. prices via LBC. Also on Shopee &amp; Lazada.</p></div>
+      <div><h1>WiFi Vending Machines \u2014 Router Base &amp; Raspberry Pi Series</h1>
+      <p>Direct C.O.D. prices via LBC &amp; J&amp;T. Also on Shopee &amp; Lazada.</p></div>
       <span class="badge-cod"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg> Cash on Delivery</span>
     </div></section>
     <div class="wrap">
       ${categories.length ? `<div class="cats">${chips}</div>` : '<div style="height:14px"></div>'}
       ${query ? `<p style="color:var(--mut)">Results for \u201C${esc(query)}\u201D (${list.length})</p>` : ''}
-      ${list.length ? `<div class="grid">${list.map(productCard).join('')}</div>`
+      ${list.length ? `${renderGroups(list)}`
         : `<div class="empty">No products found.${query ? ' <a style="color:var(--cyan)" href="/shop">Clear search</a>' : ''}</div>`}
     </div>` + storeFooter();
   return layout({ title: 'X-17 Technologies \u2014 Shop', body });
@@ -412,20 +415,11 @@ function productPage(p) {
       <div class="info">
         <h1>${esc(p.name)}</h1>
         ${p.router_model ? `<div class="model">${esc(p.router_model)}</div>` : ''}
-        <div class="pricebox">
-          <span class="now">${money(p.price_now)}</span>
-          ${p.price_was ? `<span class="was">${money(p.price_was)}</span>` : ''}
-          ${pct ? `<span class="save">-${pct}%</span>` : ''}
-          <div class="note">C.O.D. direct price via LBC \u2014 may vary on Shopee/Lazada.</div>
-        </div>
+        <div class="pricebox"><div class="pricebox"><div class="pb-main"><span class="now">${money(p.price_now)}</span><span class="pb-tag">Direct C.O.D. price</span></div>${p.price_was ? `<div class="pb-compare">Shopee / Lazada price: <s>${money(p.price_was)}</s> <span class="save">You save ${money(Number(p.price_was)-Number(p.price_now))}${pct ? ' (-'+pct+'%)' : ''}</span></div>` : ''}<div class="note">Direct C.O.D. price via LBC / J&amp;T — Shopee &amp; Lazada may be higher.</div></div><div class="orderbox"><div class="ob-head">Order Direct &amp; Save</div><button class="btn primary big"${oos ? ' disabled style="opacity:.5;cursor:not-allowed"' : ''} onclick="openOrder()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg> Order via COD — Direct Order</button><a class="btn ghost full" href="https://m.me/${CFG.FB_PAGE}" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Message us on Facebook</a><div class="ob-or"><span>or order on our official stores</span></div><div class="ob-stores">${storeBtns}</div></div>
         <div class="stock ${oos ? 'out' : 'in'}">${oos ? '\u2716 Currently sold out' : '\u2714 In stock' + (p.stock ? ' (' + p.stock + ' available)' : '')}</div>
         ${p.short_desc ? `<p>${esc(p.short_desc)}</p>` : ''}
         ${feats.length ? `<ul class="feat">${feats.map(f => '<li>' + esc(f) + '</li>').join('')}</ul>` : ''}
-        <div class="btns">
-          <button class="btn primary" ${oos ? 'disabled style="opacity:.5;cursor:not-allowed"' : ''} onclick="openOrder()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg> Order via COD</button>
-          <a class="btn ghost" href="https://m.me/${CFG.FB_PAGE}" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Message us on FB</a>
-          ${storeBtns}
-        </div>
+        
         ${p.description ? `<div class="desc">${esc(p.description)}</div>` : ''}
       </div>
     </div></div>` +
@@ -629,8 +623,9 @@ function adminProductForm(p, categories, isNew) {
   </script>`;
   // new-product form posts to create endpoint
   const createScript = isNew ? `<script>
-    function saveProduct(ev){ev.preventDefault();var fd=new FormData(document.getElementById("pform"));var o={};fd.forEach(function(v,k){o[k]=v;});
-      fetch("/admin/product/new",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json();}).then(function(res){if(res.ok){location.href="/admin/product/"+res.id;}else{document.getElementById("amsg").innerHTML='<div class="msg err">'+(res.error||"Error")+'</div>';}}).catch(function(){document.getElementById("amsg").innerHTML='<div class="msg err">Network error.</div>';});return false;}
+    var SUBMITTING=false;
+    function saveProduct(ev){ev.preventDefault();if(SUBMITTING)return false;SUBMITTING=true;var btn=document.querySelector('#pform [type=submit]');if(btn){btn.disabled=true;btn.textContent='Creating...';}var fd=new FormData(document.getElementById("pform"));var o={};fd.forEach(function(v,k){o[k]=v;});
+      fetch("/admin/product/new",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(function(r){return r.json();}).then(function(res){if(res.ok){location.href="/admin/product/"+res.id;}else{SUBMITTING=false;if(btn){btn.disabled=false;btn.textContent='Create product';}document.getElementById("amsg").innerHTML='<div class="msg err">'+(res.error||"Error")+'</div>';}}).catch(function(){SUBMITTING=false;if(btn){btn.disabled=false;btn.textContent='Create product';}document.getElementById("amsg").innerHTML='<div class="msg err">Network error.</div>';});return false;}
   </script>` : '';
   return adminShell((isNew ? 'Add product' : 'Edit product') + ' \u2014 X-17 Admin', inner + script + createScript);
 }
@@ -756,6 +751,7 @@ function registerStore(app) {
     if (!f.name) return res.json({ ok: false, error: 'Name is required' });
     f.slug = slugify(f.name);
     if (f.price_now == null) return res.json({ ok: false, error: 'Price is required' });
+    try { const _recent = await sb('x17_products?select=id,created_at&name=eq.' + encodeURIComponent(f.name) + '&order=created_at.desc&limit=1', { key: adminKey() }); if (_recent && _recent[0] && (Date.now() - new Date(_recent[0].created_at).getTime() < 20000)) return res.json({ ok: true, id: _recent[0].id }); } catch (e) {}
     try {
       const row = await adminCreateProduct(f);
       res.json({ ok: true, id: row.id });
@@ -792,3 +788,15 @@ function registerStore(app) {
 }
 
 module.exports = registerStore;
+// Expose read helpers so the homepage (landing.js) can render galleries
+// from the same live catalog — single source of truth, no duplicated data.
+module.exports.getProducts = getProducts;
+module.exports.getProductBySlug = getProductBySlug;
+module.exports.money = money;
+module.exports.cloud = cloud;
+module.exports.primaryImg = primaryImg;
+module.exports.discountPct = discountPct;
+module.exports.savings = savings;
+module.exports.groupRank = groupRank;
+module.exports.esc = esc;
+module.exports.CFG = CFG;
