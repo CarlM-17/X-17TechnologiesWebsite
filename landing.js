@@ -564,6 +564,7 @@ ${estimator()}
 ${faq()}
 ${finalCta()}
 ${footer()}
+${store.chatWidget()}
 <div class="lightbox" id="lightbox" onclick="lbClose()"><button class="lbclose" aria-label="Close">&times;</button><img id="lbimg" src="" alt="Enlarged view"></div>
 <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js" defer></script>
 ${script()}

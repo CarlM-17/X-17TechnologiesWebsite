@@ -23,6 +23,8 @@ const CFG = {
   CLOUD: process.env.CLOUDINARY_CLOUD || 'kcfsnfnx',
   PRESET: process.env.CLOUDINARY_UPLOAD_PRESET || '',
   FB_PAGE: 'X17Technologies', // m.me/<this>
+  FB_PAGE_ID: process.env.FB_PAGE_ID || '', // numeric Page ID -> (retired) Messenger chat plugin
+  TAWK_SRC: process.env.TAWK_SRC || 'https://embed.tawk.to/6b0761dc6755c33cb5d5d9f6/1k8adci3b', // Tawk.to live chat widget
   SHOPEE_URL: process.env.SHOPEE_URL || 'https://ph.shp.ee/6vCNeBNU',
   LAZADA_URL: process.env.LAZADA_URL || 'https://s.lazada.com.ph/s.ZB8ccv',
 };
@@ -323,6 +325,25 @@ function storeHeader(query) {
     </nav>
   </div></header>`;
 }
+// Messenger chat: official FB Chat Plugin when FB_PAGE_ID is set (needs domain
+// whitelisted in Meta Business Suite); otherwise a floating Messenger button.
+function chatWidget() {
+  if (CFG.TAWK_SRC) {
+    return '<script type="text/javascript">var Tawk_API=Tawk_API||{},Tawk_LoadStart=new Date();' +
+      '(function(){var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];' +
+      's1.async=true;s1.src=' + JSON.stringify(CFG.TAWK_SRC) + ';s1.charset="UTF-8";s1.setAttribute("crossorigin","*");' +
+      's0.parentNode.insertBefore(s1,s0);})();</script>';
+  }
+  if (CFG.FB_PAGE_ID) {
+    return '<div id="fb-root"></div>' +
+      '<div class="fb-customerchat" attribution="biz_inbox" page_id="' + esc(CFG.FB_PAGE_ID) + '"></div>' +
+      '<script>window.fbAsyncInit=function(){FB.init({xfbml:true,version:"v21.0"});};' +
+      '(function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(d.getElementById(id))return;js=d.createElement(s);js.id=id;js.src="https://connect.facebook.net/en_US/sdk/xfbml.customerchat.js";fjs.parentNode.insertBefore(js,fjs);}(document,"script","facebook-jssdk"));</script>';
+  }
+  return '<a href="https://m.me/' + CFG.FB_PAGE + '" target="_blank" rel="noopener" aria-label="Chat with us on Messenger" ' +
+    'style="position:fixed;right:20px;bottom:20px;z-index:90;width:58px;height:58px;border-radius:50%;background:#16B8AD;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 26px rgba(11,20,37,.35);text-decoration:none">' +
+    '<svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6.13 2 11.2c0 2.9 1.44 5.48 3.7 7.17V22l3.38-1.86c.9.25 1.86.38 2.92.38 5.5 0 10-4.13 10-9.2S17.5 2 12 2zm1.01 12.38l-2.55-2.72-4.97 2.72 5.46-5.8 2.61 2.72 4.91-2.72-5.47 5.8z"/></svg></a>';
+}
 function storeFooter() {
   return `<footer class="footer"><div class="wrap">
     X-17 Technologies &middot; DTI BN No. 5975962 &middot; \u260E 0922 460 5116 &middot; COD via LBC &amp; J&amp;T nationwide<br>
@@ -389,7 +410,7 @@ function homePage(products, categories, query, activeCat) {
       ${query ? `<p style="color:var(--mut)">Results for \u201C${esc(query)}\u201D (${list.length})</p>` : ''}
       ${list.length ? `${renderGroups(list)}`
         : `<div class="empty">No products found.${query ? ' <a style="color:var(--cyan)" href="/shop">Clear search</a>' : ''}</div>`}
-    </div>` + storeFooter();
+    </div>` + storeFooter() + chatWidget();
   return layout({ title: 'X-17 Technologies \u2014 Shop', body });
 }
 
@@ -432,7 +453,7 @@ function productPage(p) {
     </div></div>` +
     orderModal() + storeFooter() +
     `<script>var GAL=${galData},GI=0;var ORD=${orderData};</script>` +
-    productScript();
+    productScript() + chatWidget();
   return layout({ title: esc(p.name) + ' \u2014 X-17 Technologies', body });
 }
 
@@ -827,3 +848,4 @@ module.exports.savings = savings;
 module.exports.groupRank = groupRank;
 module.exports.esc = esc;
 module.exports.CFG = CFG;
+module.exports.chatWidget = chatWidget;
