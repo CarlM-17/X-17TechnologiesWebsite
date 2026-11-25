@@ -128,6 +128,13 @@ async function adminAddImage(productId, url, isPrimary, sort) {
 async function adminDeleteImage(id) {
   await sb('x17_product_images?id=eq.' + encodeURIComponent(id), { method: 'DELETE', key: adminKey() });
 }
+async function adminUpdateImage(id, fields) {
+  await sb('x17_product_images?id=eq.' + encodeURIComponent(id), { method: 'PATCH', key: adminKey(), body: fields });
+}
+async function adminReorderImages(ids) {
+  // persist new order: sort = position, and the first photo becomes the main image
+  await Promise.all(ids.map((id, i) => adminUpdateImage(id, { sort: i, is_primary: i === 0 })));
+}
 async function adminGetOrders() {
   return (await sb('x17_orders?select=*&order=created_at.desc&limit=200', { key: adminKey() })) || [];
 }
@@ -517,6 +524,9 @@ function adminShell(title, inner) {
   .imgrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
   .imgcell{position:relative;width:92px}
   .imgcell img{width:92px;height:92px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+  .imgcell{cursor:grab;touch-action:none;user-select:none}
+  .imgcell.dragging{opacity:.5;cursor:grabbing;outline:2px dashed var(--teal);outline-offset:2px}
+  .imgcell img{pointer-events:none}
   .imgcell .rm{position:absolute;top:-7px;right:-7px;background:var(--red);color:#fff;border:none;width:22px;height:22px;border-radius:50%;cursor:pointer;font-weight:700}
   .imgcell .pm{position:absolute;bottom:4px;left:4px;background:var(--amber);color:#3a2a00;font-size:.65rem;padding:1px 6px;border-radius:5px;font-weight:700}
   .msg{padding:11px 15px;border-radius:9px;margin:10px 0;font-size:.9rem}
@@ -580,7 +590,7 @@ function adminProductForm(p, categories, isNew) {
     categories.map(c => `<option value="${esc(c.id)}" ${p.category && p.category.id === c.id ? 'selected' : ''}>${esc(c.name)}</option>`)).join('');
   const presetReady = !!CFG.PRESET;
   const imgCells = imgs.map(i => `<div class="imgcell" data-id="${esc(i.id)}">
-      <img src="${esc(cloud(i.url, 'w_180,h_180,c_fill'))}">
+      <img src="${esc(cloud(i.url, 'w_180,h_180,c_fill'))}" draggable="false">
       ${i.is_primary ? '<span class="pm">Main</span>' : ''}
       <button type="button" class="rm" onclick="rmImg('${esc(i.id)}')">\u00D7</button></div>`).join('');
   const inner = adminTabs('products') +
@@ -605,13 +615,24 @@ function adminProductForm(p, categories, isNew) {
     <hr style="border-color:var(--line);margin:26px 0">
     <h3>Photos</h3>
     ${isNew ? '<p class="note" style="color:var(--mut)">Save the product first, then add photos here.</p>' :
-      (presetReady ? `<p class="note" style="color:var(--mut)">Upload clear product photos. First one is the main image. Drag not needed \u2014 upload in order.</p>
+      (presetReady ? `<p class="note" style="color:var(--mut)">Upload clear product photos, then <b>drag the thumbnails to reorder</b>. The first photo is the <b>Main</b> image. Changes save automatically.</p>
       <div class="imgrow" id="imgrow">${imgCells}</div>
       <div style="margin-top:12px"><input type="file" id="imgfile" accept="image/*" multiple>
       <span id="upst" class="note" style="color:var(--mut)"></span></div>`
       : `<div class="msg err">Photo upload needs a one-time Cloudinary setting (an unsigned upload preset). Tell me when you're ready and I'll guide you \u2014 it takes 1 minute. Until then you can still edit everything else.</div>`)}`;
   const script = isNew ? '' : `<script>
     var PID=${jsonForScript(p.id)},CLOUD=${jsonForScript(CFG.CLOUD)},PRESET=${jsonForScript(CFG.PRESET)};
+    (function(){var row=document.getElementById("imgrow");if(!row)return;var note=document.getElementById("upst");
+      function cells(){return Array.prototype.slice.call(row.querySelectorAll(".imgcell"));}
+      function updateMain(){cells().forEach(function(c,i){var pm=c.querySelector(".pm");if(i===0){if(!pm){pm=document.createElement("span");pm.className="pm";pm.textContent="Main";c.appendChild(pm);}}else if(pm){pm.parentNode.removeChild(pm);}});}
+      var saveT;function saveOrder(){clearTimeout(saveT);saveT=setTimeout(function(){var ids=cells().map(function(c){return c.getAttribute("data-id");});if(note)note.textContent="Saving order...";fetch("/admin/product/"+PID+"/images/order",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({order:ids})}).then(function(r){return r.json();}).then(function(res){if(note)note.textContent=res.ok?"Order saved ✔":(res.error||"Could not save order");}).catch(function(){if(note)note.textContent="Network error saving order";});},200);}
+      var drag=null,sx,sy,moved;
+      row.addEventListener("pointerdown",function(e){var c=e.target.closest?e.target.closest(".imgcell"):null;if(!c)return;if(e.target.closest&&e.target.closest(".rm"))return;drag=c;sx=e.clientX;sy=e.clientY;moved=false;try{c.setPointerCapture(e.pointerId);}catch(x){}});
+      row.addEventListener("pointermove",function(e){if(!drag)return;if(!moved){if(Math.abs(e.clientX-sx)<6&&Math.abs(e.clientY-sy)<6)return;moved=true;drag.classList.add("dragging");}e.preventDefault();var after=getAfter(e.clientX,e.clientY);if(after==null){row.appendChild(drag);}else if(after!==drag){row.insertBefore(drag,after);}});
+      function endDrag(){if(!drag)return;var wm=moved;drag.classList.remove("dragging");drag=null;if(wm){updateMain();saveOrder();}}
+      row.addEventListener("pointerup",endDrag);row.addEventListener("pointercancel",endDrag);
+      function getAfter(x,y){var els=cells().filter(function(c){return c!==drag;});var closest=null,cd=Infinity;els.forEach(function(c){var b=c.getBoundingClientRect();var cx=b.left+b.width/2,cy=b.top+b.height/2;if(x<cx){var d=Math.abs(x-cx)+Math.abs(y-cy);if(d<cd){cd=d;closest=c;}}});return closest;}
+    })();
     function rmImg(id){if(!confirm("Remove this photo?"))return;fetch("/admin/image/"+id+"/delete",{method:"POST"}).then(function(){var c=document.querySelector('.imgcell[data-id="'+id+'"]');if(c)c.remove();});}
     var fileEl=document.getElementById("imgfile");
     if(fileEl){fileEl.addEventListener("change",function(){var files=Array.prototype.slice.call(this.files);if(!files.length)return;var st=document.getElementById("upst");var done=0;st.textContent="Uploading...";
@@ -781,6 +802,12 @@ function registerStore(app) {
   }));
   app.post('/admin/image/:id/delete', needAdmin, wrap(async (req, res) => {
     await adminDeleteImage(req.params.id);
+    res.json({ ok: true });
+  }));
+  app.post('/admin/product/:id/images/order', needAdmin, wrap(async (req, res) => {
+    const order = (req.body && req.body.order) || [];
+    if (!Array.isArray(order) || !order.length) return res.json({ ok: false, error: 'No order provided' });
+    await adminReorderImages(order.map(String));
     res.json({ ok: true });
   }));
 
